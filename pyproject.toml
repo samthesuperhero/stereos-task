@@ -1,0 +1,26 @@
+[project]
+name = "stereos-task"
+dynamic = ["version"]
+description = "Verifiable supply-contract terms review prototype"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+]
+dev = [
+    "ruff>=0.6",
+    "stereos-task[test]",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["E501", "I", "UP"]

@@ -4,7 +4,7 @@
 
 This is the single repository location for service-specific business logic, source-data expectations, product decisions, and task-specific acceptance requirements. Generic engineering and operational requirements remain in `AGENTS.md` and the other documents under `docs/`.
 
-The source assignment is `task/PO_vibecoding_task.md`; supplied source materials are in `data/`. The application is not implemented yet, so this file specifies required behavior rather than claiming current functionality.
+The source assignment is `task/PO_vibecoding_task.md`; supplied source materials are in `data/`. The prototype implements the required local multi-file review flow. This file remains the source of business rules and acceptance requirements.
 
 ## Purpose and user
 
@@ -81,7 +81,27 @@ The completed prototype README must include installation and launch commands, de
 
 At 100,000 documents and with access permissions, reassess indexing, storage, processing throughput, tenant/role isolation, and source-level authorization. Those mechanisms are not selected in the current prototype phase.
 
+## Implemented processing design
+
+The backend accepts UTF-8 document text in a JSON request from the static browser interface. `back/parser.py` classifies by document content, links explicit contract numbers, and captures totals and delivery dates only from their immediate supported clauses. Payment values and deadlines elsewhere in the same paragraph are not candidates. Multiple distinct supported values remain conflicts requiring review. Signed amendments are ordered by effective date, document date, and upload order rather than filename.
+
+Only signed contracts with one unique contract number contribute effective rows. Negated or unresolved signatures, missing numbers, and duplicate contract numbers remain visible as review items and original documents; their supporting amendments are not applied silently. Invalid source-derived dates produce document-specific warnings instead of rejecting the HTTP batch. Request-level dates remain strictly validated.
+
+Every uploaded document receives a stable one-based ID in upload order. Evidence contains this `document_id`, filename, exact source line, paragraph number, and character offset, so duplicate filenames do not redirect evidence to another document. Static file reads are offloaded with `asyncio.to_thread`; parsing is bounded by request and per-document size limits and runs without external services.
+
+The review response keeps effective contract values, review items, and original documents separate. The frontend renders `нет данных` for null values and provides evidence anchors plus field-specific answers and a delivery-cutoff report. Review items use `delivery_change_status` to distinguish `unapproved`, `approved_pending`, `unresolved`, and `none`; signed future amendments are not reported as unapproved. The parser intentionally targets the supplied general Russian TXT format; ambiguous or unsupported formulations require review rather than inference.
+
 ## Service decisions
+
+### 2026-11-06 — Exclude ambiguous contracts and distinguish pending approval
+
+**Status:** Accepted
+
+**Context:** Review found that negated contract signatures and duplicate contract numbers could contribute apparently effective rows, while signed future amendments were grouped with unapproved proposals. Duplicate filenames also made filename-only evidence navigation ambiguous.
+
+**Decision:** Effective rows require a signed contract with one unique number. Duplicate or unresolved base contracts and their supporting documents require review rather than inferred terms. Source-date errors are document warnings, not malformed HTTP. Evidence uses upload-order document IDs, and delivery changes explicitly distinguish unapproved, approved-but-pending, unresolved, and absent states.
+
+**Consequences:** Users see no active terms where contract identity or signature is unreliable. Signed future amendments remain visible without being called unapproved, and every evidence anchor identifies one uploaded document even when basenames repeat. This refines “Treat signed effective amendments as the only source of changed terms” without changing the underlying amendment rule.
 
 ### 2026-11-06 — Treat signed effective amendments as the only source of changed terms
 

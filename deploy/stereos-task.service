@@ -1,0 +1,40 @@
+[Unit]
+Description=Stereos contract review service
+# Start after the basic network stack is initialized; no remote service is required.
+After=network.target
+
+[Service]
+# The application sends READY=1 through sd_notify after it can accept requests.
+Type=notify
+# Run without root privileges and with a dedicated primary group.
+User=stereos-task
+Group=stereos-task
+# Resolve the back package and repository-relative runtime assets from the checkout.
+WorkingDirectory=/opt/stereos-task
+# Write JSON logs directly to stdout so journald receives them without buffering delays.
+Environment=PYTHONUNBUFFERED=1
+# Reject invalid configuration before starting the main process; exit 78 means EX_CONFIG.
+ExecStartPre=/opt/stereos-task/.venv/bin/python -m back --check --config /etc/stereos-task/stereos-task.ini
+# Run from the pre-created virtual environment; the runtime itself uses only stdlib.
+ExecStart=/opt/stereos-task/.venv/bin/python -m back --config /etc/stereos-task/stereos-task.ini
+# Recover from unexpected failures, but do not restart after clean or intentional exits.
+Restart=on-failure
+# Configuration errors need administrator intervention, so prevent a crash/restart loop.
+RestartPreventExitStatus=78
+# Allow time for the SIGTERM/SIGINT handler to stop intake and drain active requests.
+TimeoutStopSec=30
+
+# Prevent the process from gaining additional privileges through setuid/file capabilities.
+NoNewPrivileges=true
+# Isolate temporary files so other host processes cannot inspect or alter them.
+PrivateTmp=true
+# Mount host filesystems read-only except for explicitly allowed writable paths.
+ProtectSystem=strict
+# Hide /home, /root, and /run/user because the service needs no user-home access.
+ProtectHome=true
+# Preserve write access to the service state directory despite ProtectSystem=strict.
+ReadWritePaths=/var/lib/stereos-task
+
+[Install]
+# Enable this service for the normal multi-user systemd boot target.
+WantedBy=multi-user.target

@@ -4,7 +4,7 @@ These rules apply to everyone working in this repository, human or agent. The ge
 
 ## Rules
 
-1. **Documentation is a deliverable.** Update the relevant documentation in the same change as the code it describes. Record decisions newest-first in `docs/DECISIONS.md`; never delete history, and supersede obsolete decisions instead of rewriting it.
+1. **Documentation is a deliverable.** Update the relevant documentation in the same change as the code it describes. Use only English in project-authored READMEs, documentation, specifications, and comments; required source-data literals and user-facing domain strings may remain in their original language. Record decisions newest-first in `docs/DECISIONS.md`; never delete history, and supersede obsolete decisions instead of rewriting it.
 
 2. **Python and asyncio.** The interpreter floor is declared only in `pyproject.toml` and must not be restated elsewhere. Runtime code is asyncio-first: all I/O is asynchronous and the event loop must never be blocked.
 

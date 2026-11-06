@@ -1,0 +1,18 @@
+:root { font-family: system-ui, sans-serif; color: #182026; background: #f4f6f8; }
+body { margin: 0; }
+main { max-width: 1180px; margin: auto; padding: 2rem 1rem 4rem; }
+form, .query { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; padding: 1rem; background: white; border-radius: .5rem; }
+label { display: grid; gap: .35rem; }
+button { padding: .65rem 1rem; cursor: pointer; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { text-align: left; padding: .75rem; border-bottom: 1px solid #dce1e5; vertical-align: top; }
+.missing { color: #8a4b08; font-weight: 600; }
+.evidence { display: block; margin-top: .35rem; }
+.notice, .report, article { background: white; padding: 1rem; margin: .75rem 0; border-left: 4px solid #4b7188; }
+.report { border-left-color: #287a55; }
+.paragraph { white-space: pre-wrap; padding: .5rem; margin: .2rem 0; }
+.paragraph:target { background: #fff1a8; }
+.quote { color: #44515b; }
+#status { min-height: 1.5rem; }
+output { flex-basis: 100%; font-weight: 600; }

@@ -7,6 +7,7 @@ These conventions are binding for implementation, review, installation, and oper
 ## Change and decision hygiene
 
 - Documentation changes ship in the same change as the behavior they describe.
+- Project-authored READMEs, documentation, specifications, and comments use English only. Original source materials and required user-facing or source-data literals are not translated merely to satisfy this rule.
 - Every meaningful decision is recorded in `docs/DECISIONS.md`, newest first. Existing entries are retained; later decisions supersede earlier ones explicitly.
 - Do not represent planned or open choices as implemented behavior.
 - Documentation-only and repository-root-only changes do not change `VERSION`.

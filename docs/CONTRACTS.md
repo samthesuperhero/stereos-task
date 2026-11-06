@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document defines generic service operational behavior. It contains no business-domain rules or source-data expectations; those belong exclusively in `docs/SERVICE_SPECIFICATION.md`. The application is not implemented yet, so this document specifies required behavior rather than claiming current functionality.
+This document defines generic service operational behavior. It contains no business-domain rules or source-data expectations; those belong exclusively in `docs/SERVICE_SPECIFICATION.md`. The backend, installers, unit, and nginx assets implement this contract; real production-host reconciliation remains an operational verification task.
 
 ## Deployment topology contract
 
@@ -42,19 +42,23 @@ Secrets must never appear in any field. Structured error payloads use exactly th
 
 ## Installer and updater contract
 
-- Deliver `install.py` and `update.py`, plus executable `install` and `update` Bash wrappers that bootstrap a qualifying interpreter.
+- Deliver `install.py` and `update.py`, plus executable `install` and `update` Bash wrappers that bootstrap a qualifying interpreter. Provisioning reads the interpreter lower bound from `pyproject.toml` without restating it and validates existing and newly created virtual environments by executing their interpreters.
 - Administrators install an already-cloned checkout with `sudo ./install`; installation never performs `git pull`.
 - Both tools run as root before the virtual environment exists and use only the standard library in their import chains and `runtime/provision.py`.
-- Both refuse to run outside the canonical production checkout. Its exact path remains an open deployment decision.
-- Both are idempotent: re-running an already-correct host makes no changes and exits zero.
+- Both refuse to run outside `/opt/stereos-task`, the canonical production checkout, and reject an unsupported interpreter before Git or host mutations.
+- Both are idempotent: re-running an already-correct host makes no changes and exits zero. Missing, obsolete, or broken virtual environments are built and validated in a staging directory before replacement.
 - Both support `--dry-run` and `--verbose`; argument parsing uses `allow_abbrev=False`.
 - Update additionally supports `--no-restart` and `--start`.
 - Update performs `git pull`, re-executes once if `HEAD` changed, then reconciles with the updated code.
-- Restart occurs only if the unit, code, or configuration changed, subject to the update flags.
+- Backend restart occurs only if the unit, code, or INI configuration changed, subject to the update flags. Static, nginx, ownership, mode, user, virtualenv, and firewall repairs do not independently restart it.
 - Unknown installation values are requested interactively. Secret prompts disable echo; values are never invented.
-- INI reconciliation adds new example keys without altering values, deleting keys, or losing comments/order. The pre-merge file is retained as `*.ini.bak`.
+- Existing and example INI content is validated before host provisioning mutations. Reconciliation adds new example keys without altering values, deleting keys, or losing comments/order. The exact pre-merge file, including an empty file, is atomically retained as `*.ini.bak` before the live INI is replaced; backup failure leaves the live INI unchanged.
+- Frontend reconciliation mirrors the repository into the dedicated static directory and removes stale files without following destination symlinks. Expected symlinks are replaced rather than traversed, changed content is copied through secure temporary files and atomically renamed, and unexpected type collisions fail safely. Static directories use mode `0755` and files `0644`; existing configuration, state, and static directory modes are reconciled rather than checked only at creation.
+- Provisioning validates nginx with `nginx -t` before lifecycle changes, reloads or restarts it after configuration changes, and starts it when inactive even if its configuration is unchanged.
+- Failed captured subprocesses report their command, exit status, and useful stderr or stdout through the entry-point diagnostic.
+- When firewalld is active, TCP ports 80 and 443 are opened permanently; inactive firewalld and all SELinux settings are left unchanged. Firewall reconciliation does not trigger a backend restart.
 
-A fresh production host requires only cloning into the fixed production path and running `sudo ./install` once that path and the installers are implemented.
+For installation, a root administrator clones into `/root/stereos-task`, synchronizes the tree into `/opt/stereos-task` with `rsync` while preserving the production `.venv`, and runs `./install` from the canonical checkout. For updates, the administrator pulls both checkouts: first in `/root/stereos-task`, then through `./update` in `/opt/stereos-task`, without an intervening `rsync` that would hide the production `HEAD` change.
 
 ## systemd and shutdown contract
 

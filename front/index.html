@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проверка условий поставки</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <h1>Условия договоров поставки</h1>
+    <p>Загрузите договоры и связанные TXT-документы одним комплектом. Значения всегда можно проверить по точной цитате.</p>
+    <form id="upload-form">
+      <label>TXT-файлы <input id="files" type="file" accept=".txt,text/plain" multiple required></label>
+      <label>Дата проверки <input id="review-date" type="date" required></label>
+      <label>Поставка раньше <input id="cutoff" type="date" required></label>
+      <button type="submit">Проверить документы</button>
+    </form>
+    <p id="status" role="status"></p>
+    <section id="results" hidden>
+      <h2>Действующие условия</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Договор</th><th>Поставщик</th><th>Сумма</th><th>Срок поставки</th><th>Проверка</th></tr></thead>
+        <tbody id="contract-rows"></tbody>
+      </table></div>
+      <h2>Быстрый ответ</h2>
+      <div class="query">
+        <select id="query-contract" aria-label="Договор"></select>
+        <button id="query-amount" type="button">Сумма договора</button>
+        <button id="query-date" type="button">Срок поставки</button>
+        <output id="query-answer"></output>
+      </div>
+      <div id="delivery-report"></div>
+      <h2>Требуют проверки</h2>
+      <div id="review-items"></div>
+      <h2>Исходные документы</h2>
+      <div id="documents"></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
